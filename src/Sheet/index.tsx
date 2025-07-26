@@ -58,7 +58,27 @@ const Sheet = ({ className }: Props) => {
     voice.drawWithStyle()
     stave.drawWithStyle()
 
-    console.log("NOTE", note.getSVGElement())
+    const noteHead = note.noteHeads[0]
+    const noteHeadElement = noteHead.getSVGElement()
+
+    if (noteHeadElement) {
+      const animation = noteHeadElement.animate(
+        {
+          fill: "red",
+        },
+        {
+          duration: 1000,
+          iterations: Infinity,
+          easing: "linear",
+        },
+      )
+
+      setTimeout(() => {
+        animation.cancel()
+      }, 1000)
+    }
+
+    console.log("NOTE", note.noteHeads[0].getSVGElement())
   }, [])
 
   return <div id="sheet-root" ref={sheetRef} className={className}></div>
