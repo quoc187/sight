@@ -1,10 +1,17 @@
-import { getNotesInOctave, PianoNote } from "@/lib/piano/base"
-import { computeAndZipNotesPosition } from "@/lib/piano/renderer"
-import { cn } from "@/lib/utils"
 import { useMemo, useState } from "react"
+import { getNotesInOctave, PianoNote } from "@/core/piano/base"
+import { computeAndZipNotesPosition } from "@/core/piano/renderer"
+import { cn } from "@/lib/utils"
+import { PianoKey } from "./key"
+
 import "./styles.scss"
 
-export const Piano = () => {
+type Props = {
+  onAttack?: (note: PianoNote) => void
+  onRelease?: (note: PianoNote) => void
+}
+
+export const Piano = ({ onAttack, onRelease }: Props) => {
   const [notes] = useState<PianoNote[]>(() => getNotesInOctave(4))
 
   const notesWithConfig = useMemo(() => {
@@ -32,9 +39,9 @@ export const Piano = () => {
   }, [minX, maxX])
 
   return (
-    <div className="relative w-full" style={{ height: 160, width }}>
+    <div className="piano" style={{ height: 160, width }}>
       {notesWithConfig.map(({ note, config }) => (
-        <button
+        <PianoKey
           data-note={note.fullName}
           data-midi-number={note.midiNumber}
           key={note.midiNumber}
@@ -48,7 +55,13 @@ export const Piano = () => {
             "piano-key",
             note.isBlackKey ? "black-key" : "white-key",
           )}
-        ></button>
+          onAttack={() => {
+            onAttack?.(note)
+          }}
+          onRelease={() => {
+            onRelease?.(note)
+          }}
+        ></PianoKey>
       ))}
     </div>
   )

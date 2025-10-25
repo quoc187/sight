@@ -1,5 +1,8 @@
-import { useEffect, useRef } from "react"
-import { Stave, Renderer, StaveNote, Voice, Formatter } from "vexflow"
+import { Fragment, useCallback, useEffect, useRef } from "react"
+import { Piano } from "@/components/piano"
+import { PianoNote } from "@/core/piano/base"
+import { getOctave, getRandomNoteName } from "@/core/piano/utils"
+import { VexFlowPianoSheet } from "@/core/sheet"
 
 const getSizeConfig = () => ({
   width: Math.min(window.innerWidth - 32, 500),
@@ -12,76 +15,65 @@ type Props = {
   className?: string
 }
 
+const randomNote = () => {
+  const midiNumber = Math.floor(Math.random() * 40) + 40
+
+  return PianoNote.fromNameAndOctave(
+    getRandomNoteName(midiNumber),
+    getOctave(midiNumber),
+  )
+}
+
 const Sheet = ({ className }: Props) => {
-  const rendererRef = useRef<Renderer | null>(null)
-  const sheetRef = useRef<HTMLDivElement | null>(null)
+  const sheetRef = useRef<VexFlowPianoSheet | null>(null)
+  const elRef = useRef<HTMLDivElement | null>(null)
+  const noteRef = useRef<PianoNote>(randomNote())
+  const resultRef = useRef<HTMLParagraphElement | null>(null)
 
-  useEffect(() => {
-    if (rendererRef.current) return
-    if (!sheetRef.current) return
-
-    const { width, height, staveWidth, staveSpace } = getSizeConfig()
-
-    Object.assign(sheetRef.current.style, {
-      width: `${width}px`,
-      height: `${height}px`,
-    })
-
-    const renderer = (rendererRef.current = new Renderer(
-      sheetRef.current,
-      Renderer.Backends.SVG,
-    ))
-    const context = renderer.getContext()
-
-    renderer.resize(width, height)
-
-    const stave = new Stave(0, 0, staveWidth, {
-      spacingBetweenLinesPx: staveSpace,
-    })
-
-    stave.addClef("treble")
-    stave.setContext(context)
-
-    const note = new StaveNote({ keys: ["c/4"], duration: "w" })
-
-    // Create a voice in 4/4 and add above notes
-    const voice = new Voice({ numBeats: 1, beatValue: 1 })
-    voice.addTickables([note])
-
-    // Format and justify the notes to 400 pixels.
-    new Formatter().joinVoices([voice]).format([voice], 350)
-
-    voice.setContext(context)
-    voice.setStave(stave)
-
-    // Render voice
-    voice.drawWithStyle()
-    stave.drawWithStyle()
-
-    const noteHead = note.noteHeads[0]
-    const noteHeadElement = noteHead.getSVGElement()
-
-    if (noteHeadElement) {
-      const animation = noteHeadElement.animate(
-        {
-          fill: "red",
-        },
-        {
-          duration: 1000,
-          iterations: Infinity,
-          easing: "linear",
-        },
-      )
-
-      setTimeout(() => {
-        animation.cancel()
-      }, 1000)
-    }
-
-    console.log("NOTE", note.noteHeads[0].getSVGElement())
+  const updateNote = useCallback(() => {
+    noteRef.current = randomNote()
+    sheetRef.current?.clear()
+    sheetRef.current?.addNote(noteRef.current)
   }, [])
 
-  return <div id="sheet-root" ref={sheetRef} className={className}></div>
+  useEffect(() => {
+    if (sheetRef.current) return
+    if (!elRef.current) return
+    const sheet = new VexFlowPianoSheet(elRef.current, getSizeConfig())
+    sheetRef.current = sheet
+
+    sheet.addNote(noteRef.current)
+  }, [])
+
+  const handleAttack = useCallback(
+    (note: PianoNote) => {
+      const isCorrect = noteRef.current.isEqual(note)
+
+      if (!resultRef.current) {
+        return updateNote()
+      }
+
+      if (isCorrect) {
+        resultRef.current.textContent = `CORRECT NOTE: ${noteRef.current.fullName}`
+        resultRef.current.style.color = "green"
+      } else {
+        resultRef.current.textContent = `WRONG NOTE: ${noteRef.current.fullName}`
+        resultRef.current.style.color = "red"
+      }
+
+      updateNote()
+    },
+    [updateNote],
+  )
+
+  return (
+    <Fragment>
+      <div id="sheet-root" ref={elRef} className={className}></div>
+      <Piano onAttack={handleAttack} />
+
+      <p ref={resultRef}></p>
+    </Fragment>
+  )
 }
 
 export default Sheet

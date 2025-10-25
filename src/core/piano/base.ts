@@ -79,6 +79,10 @@ export class PianoNote {
     )
   }
 
+  static fromNameAndOctave(name: string, octave: number) {
+    return new PianoNote(`${name}${octave}`)
+  }
+
   /**
    * Clone the note
    */
