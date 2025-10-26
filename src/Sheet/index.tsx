@@ -1,5 +1,5 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from "react"
-import { Piano } from "@/components/piano"
+import { Piano } from "@/components/Piano"
 import { Button } from "@/components/ui/button"
 import { PianoNote } from "@/core/piano/base"
 import { getOctave, getRandomNoteName } from "@/core/piano/utils"
