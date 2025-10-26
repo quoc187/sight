@@ -32,15 +32,43 @@ const usePianoKey = ({
   }, [onRelease])
 
   const handlePointerDown = useCallback(
-    (_e: React.PointerEvent<HTMLButtonElement>) => {
+    (e: React.PointerEvent<HTMLButtonElement>) => {
+      e.currentTarget.setPointerCapture(e.pointerId)
       attack()
     },
     [attack],
   )
 
   const handlePointerUp = useCallback(
-    (_e: React.PointerEvent<HTMLButtonElement>) => {
+    (e: React.PointerEvent<HTMLButtonElement>) => {
+      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+        e.currentTarget.releasePointerCapture(e.pointerId)
+      }
       release()
+    },
+    [release],
+  )
+
+  const handlePointerCancel = useCallback(
+    (e: React.PointerEvent<HTMLButtonElement>) => {
+      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+        e.currentTarget.releasePointerCapture(e.pointerId)
+      }
+      release()
+    },
+    [release],
+  )
+
+  const handlePointerLeave = useCallback(
+    (e: React.PointerEvent<HTMLButtonElement>) => {
+      // Only release if we don't have pointer capture
+      // (if we have capture, onPointerUp will handle it)
+      if (
+        !e.currentTarget.hasPointerCapture(e.pointerId) &&
+        isPressed.current
+      ) {
+        release()
+      }
     },
     [release],
   )
@@ -48,6 +76,8 @@ const usePianoKey = ({
   return {
     onPointerDown: handlePointerDown,
     onPointerUp: handlePointerUp,
+    onPointerCancel: handlePointerCancel,
+    onPointerLeave: handlePointerLeave,
   }
 }
 
@@ -97,8 +127,22 @@ export const PianoKey = (props: PianoKeyProps) => {
         handlers.onPointerUp(e)
         props.onPointerUp?.(e)
       },
+      onPointerCancel: (e: React.PointerEvent<HTMLButtonElement>) => {
+        handlers.onPointerCancel(e)
+        props.onPointerCancel?.(e)
+      },
+      onPointerLeave: (e: React.PointerEvent<HTMLButtonElement>) => {
+        handlers.onPointerLeave(e)
+        props.onPointerLeave?.(e)
+      },
     }
-  }, [handlers, props.onPointerDown, props.onPointerUp])
+  }, [
+    handlers,
+    props.onPointerDown,
+    props.onPointerUp,
+    props.onPointerCancel,
+    props.onPointerLeave,
+  ])
 
   return <button {...props} {...mergedHandlers} ref={ref} />
 }
