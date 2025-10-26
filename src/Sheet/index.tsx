@@ -5,6 +5,7 @@ import { PianoNote } from "@/core/piano/base"
 import { getOctave, getRandomNoteName } from "@/core/piano/utils"
 import { VexFlowPianoSheet } from "@/core/sheet"
 import { useMidi } from "./use-midi"
+import type { PianoSheet } from "@/core/sheet/base"
 
 const getSizeConfig = () => ({
   width: Math.min(window.innerWidth - 32, 500),
@@ -32,7 +33,7 @@ type Tracking = {
 }
 
 const Sheet = ({ className }: Props) => {
-  const sheetRef = useRef<VexFlowPianoSheet | null>(null)
+  const sheetRef = useRef<PianoSheet | null>(null)
   const elRef = useRef<HTMLDivElement | null>(null)
   const noteRef = useRef<PianoNote>(randomNote())
   const resultRef = useRef<HTMLParagraphElement | null>(null)
