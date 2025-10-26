@@ -5,7 +5,7 @@ export interface PianoSheet {
    * Highlight the note on the sheet
    * @param note The note to highlight
    */
-  highlightNote(note: PianoNote, duration?: number): void
+  highlightNote(note: PianoNote, duration?: number): Promise<void>
   /**
    * Add the note to the sheet
    * @param note The note to add

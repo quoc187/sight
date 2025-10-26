@@ -138,27 +138,36 @@ export class VexFlowPianoSheet implements PianoSheet {
     vNote.draw()
   }
 
-  highlightNote(note: PianoNote, durationMs?: number): void {
+  async highlightNote(note: PianoNote, durationMs?: number): Promise<void> {
     const vNote = this.notes.find((n) => n.isSameNote(note))
-
-    console.log(vNote)
 
     if (!vNote) {
       return
     }
 
-    const d = durationMs ?? 500
+    return new Promise((resolve) => {
+      const d = durationMs ?? 500
 
-    vNote.getSVGElement()?.animate(
-      {
-        fill: "red",
-      },
-      {
-        duration: d,
-        iterations: 4,
-        easing: "ease-in-out",
-      },
-    )
+      const anim = vNote.getSVGElement()?.animate(
+        {
+          fill: "red",
+        },
+        {
+          duration: d,
+          iterations: 1,
+          easing: "ease-in-out",
+        },
+      )
+
+      if (!anim) {
+        resolve()
+        return
+      }
+
+      anim.onfinish = () => resolve()
+      anim.oncancel = () => resolve()
+      anim.onremove = () => resolve()
+    })
   }
 
   clear(): void {
