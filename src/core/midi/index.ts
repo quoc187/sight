@@ -4,7 +4,7 @@ export class Midi {
   enabled = false
 
   async init() {
-    return WebMidi.enable().then((m) => {
+    return WebMidi.enable().then(() => {
       this.enabled = true
       console.log("MIDI enabled")
 
